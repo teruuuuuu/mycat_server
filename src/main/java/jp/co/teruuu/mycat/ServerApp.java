@@ -5,13 +5,13 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 
-import jp.co.teruuu.mycat.tcp.ServerModoki;
+import jp.co.teruuu.mycat.server.MyCatMain;
 
 @SpringBootApplication
 public class ServerApp {
 
 	@Autowired
-	ServerModoki server;
+	MyCatMain myCatMain;
 	public static void main(String[] args) {
         try (ConfigurableApplicationContext ctx = SpringApplication.run(ServerApp.class, args)) {
         	ServerApp app = ctx.getBean(ServerApp.class);
@@ -24,7 +24,7 @@ public class ServerApp {
 	public void run(String... args) throws Exception {
     	System.out.println("処理開始" + this.getClass().getName());
         //アプリの処理
-		server.run();
+    	myCatMain.run();
         System.out.println("処理終了");
     }
 }
