@@ -13,6 +13,7 @@ public class AppProperties {
 	private String serversend;
 	private String clientsend;
 	private String documentRoot;
+	private String errorDocument;
 	
 	private String host;
 	private int port;
@@ -59,5 +60,11 @@ public class AppProperties {
 	}
 	public void setDocumentRoot(String documentRoot) {
 		this.documentRoot = documentRoot;
+	}
+	public String getErrorDocument() {
+		return errorDocument;
+	}
+	public void setErrorDocument(String errorDocument) {
+		this.errorDocument = errorDocument;
 	}
 }

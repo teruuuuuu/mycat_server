@@ -1,16 +1,23 @@
 package jp.co.teruuu.mycat.server;
 
-import java.io.FileInputStream;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.HashMap;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
 
 import jp.co.teruuu.mycat.config.AppProperties;
+import jp.co.teruuu.mycat.util.MyURLDecoder;
+import jp.co.teruuu.mycat.util.SendResponse;
+import jp.co.teruuu.mycat.util.Util;
 
 public class MyCatThread implements Runnable{
 	private Socket socket;
@@ -61,41 +68,6 @@ public class MyCatThread implements Runnable{
 		}
 	}
 	
-	private void writeLine(OutputStream output, String str) throws Exception {
-		for (char ch : str.toCharArray()) {
-			output.write((int) ch);
-		}
-		output.write((int) '\r');
-		output.write((int) '\n');
-	}
-	
-	private String getDateString() {
-		Calendar cal = Calendar.getInstance(appProp.getTimezone());
-		DateFormat df = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss");
-		df.setTimeZone(cal.getTimeZone());
-		return df.format(cal.getTime());
-	}
-	
-	private static final HashMap<String, String> contentTypeMap = 
-			new HashMap<String, String>() {
-				{put("html", "text/html");
-				put("html", "text/html");
-				put("txt", "text/plain");
-				put("css", "text/css");
-				put("png", "text/png");
-				put("jpg", "text/jpeg");
-				put("jpeg", "text/jpeg");
-				put("gif", "text/gif");}};
-	
-	private static String getContentType(String ext) {
-		String ret = contentTypeMap.get(ext.toLowerCase());
-		if (ret == null){
-			return "application/octet-stream";
-		}else {
-			return ret;
-		}
-	}
-	
 	@Override
 	public void run() {
 		OutputStream output;
@@ -105,32 +77,65 @@ public class MyCatThread implements Runnable{
 			String line;
 			String path = null;
 			String ext = null;
-			while ((line = readLine(input)) != null){
+			String host = null;
+			while ((line = Util.readLine(input)) != null){
 				if(line == "")
 					break;
 				if(line.startsWith("GET")){
-					path = line.split(" ")[1];
+					path = MyURLDecoder.decode(line.split(" ")[1], "UTF-8");
 					String[] tmp = path.split("\\.");
 					ext = tmp[tmp.length -1];
+				}else if(line.startsWith("Host:")) {
+					host = line.substring("Host: ".length());
 				}
 			}
-			output = socket.getOutputStream();
-			// レスポンスヘッダを返す
-			writeLine(output, "HTTP/1.1 200 OK");
-			writeLine(output, "Date: " + getDateString());
-			writeLine(output, "Server: MyCat/0.1");
-			writeLine(output, "Connection: close");
-			writeLine(output, "Content-type: " + getContentType(ext));
-			writeLine(output, "");
 			
-			//レスポンスボディを返す
-			try(FileInputStream fis = new FileInputStream(appProp.getDocumentRoot() + path);){
-				int ch;
-				while((ch = fis.read()) != -1){
-					output.write(ch);
-				}
+			if(path == null){
+				return;
 			}
-		}catch (Exception ex){
+			if(path.endsWith("/")){
+				path += "index.html";
+				ext = "html";
+			}
+			
+			output = new BufferedOutputStream(socket.getOutputStream());
+			
+			FileSystem fs = FileSystems.getDefault();
+			File documentRootFile = new File(appProp.getDocumentRoot());
+			Path pathObj = fs.getPath(appProp.getDocumentRoot() + path);
+			Path realPath;
+			try{
+				realPath = pathObj.toRealPath();
+			}catch(NoSuchFileException ex){
+				SendResponse.sendNotFoundResponse(output, appProp);
+				output.close();
+				return;
+			}
+			if(!realPath.startsWith(documentRootFile.getAbsolutePath())){
+				SendResponse.sendNotFoundResponse(output, appProp);
+				output.close();
+				return;
+			}else if(Files.isDirectory(realPath)){
+				SendResponse.sendNotFoundResponse(output, appProp);
+				output.close();
+				return;
+			}else if(Files.isDirectory(realPath)){
+				String location = "http://" 
+						+ ((appProp.getHost() != null ) ? host : appProp.getHost())
+					    + path;
+				SendResponse.sendMovePermanentlyResponse(output, location, appProp);
+				output.close();
+				return;
+			}
+			
+			try(InputStream fis = new BufferedInputStream(Files.newInputStream(realPath))){
+				SendResponse.sendOkResponse(output, fis, ext, appProp);
+				output.close();
+			}catch(FileNotFoundException ex){
+				SendResponse.sendNotFoundResponse(output, appProp);
+				output.close();
+			}
+		}catch (Exception ex) {
 			ex.printStackTrace();
 		} finally{
 			try{

@@ -30,3 +30,4 @@ nbdist/
 /bin/
 src/main/resources/development/*
 src/main/resources/production/*
+src/main/documentRoot/*
