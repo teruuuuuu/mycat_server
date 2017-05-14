@@ -40,10 +40,16 @@ sourceSets {
 	}
 }
 
+
 //設定ファイルの切り替え(本番用・テストサーバ用)
 def environment = project.hasProperty( 'env' ) ? env : 'dev'
+println "Target environment: $environment"
 if( environment.equals( 'prod' ))
 	sourceSets.main.resources.srcDirs 'src/main/resources/production'
 else
 	sourceSets.main.resources.srcDirs 'src/main/resources/development'
-println "Target environment: $environment"
+
+//メインクラス指定
+bootRepackage {
+    mainClass = 'jp.co.teruuu.mycat.ServerApp'
+}
