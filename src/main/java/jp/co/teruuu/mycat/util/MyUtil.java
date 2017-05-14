@@ -8,7 +8,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.TimeZone;
 
-public class Util {
+public class MyUtil {
 	public static String readLine(InputStream input) throws Exception {
 		int ch;
 		String ret = "";
@@ -39,6 +39,13 @@ public class Util {
 	
 	public static String getDateString(TimeZone tz) {
 		Calendar cal = Calendar.getInstance(tz);
+		DateFormat df = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss");
+		df.setTimeZone(cal.getTimeZone());
+		return df.format(cal.getTime());
+	}
+	
+	public static String getDateStringUgc() {
+		Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
 		DateFormat df = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss");
 		df.setTimeZone(cal.getTimeZone());
 		return df.format(cal.getTime());

@@ -13,20 +13,32 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jp.co.teruuu.mycat.config.AppProperties;
+import jp.co.teruuu.mycat.servletimpl.ServletInfo;
+import jp.co.teruuu.mycat.servletimpl.ServletService;
+import jp.co.teruuu.mycat.servletimpl.WebApplication;
 import jp.co.teruuu.mycat.util.MyURLDecoder;
+import jp.co.teruuu.mycat.util.MyUtil;
 import jp.co.teruuu.mycat.util.SendResponse;
-import jp.co.teruuu.mycat.util.Util;
 
 public class MyCatThread implements Runnable{
 	private Socket socket;
 	private AppProperties appProp;
 	
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
+	
 	public MyCatThread(Socket socket, AppProperties appProp){
 		this.socket = socket;
 		this.appProp = appProp;
 	}
+	
+	
 
 	public void serverReceive(Socket socket) throws IOException{
 		int ch;
@@ -49,23 +61,15 @@ public class MyCatThread implements Runnable{
 		System.out.println("server send:" + sendText);
 	}
 	
-	private static String readLine(InputStream input) throws Exception {
-		int ch;
-		String ret = "";
-		while((ch = input.read()) != -1){
-			if(ch == '\r') {
-				
-			}else if(ch == '\n') {
-				break;
-			} else {
-				ret += (char)ch;
-			}
-		}
-		if (ch == -1){
-			return null;
-		}else {
-			return ret;
-		}
+	private static void addRequestHeader(Map<String, String> requestHeader, String line){
+		int colonPos = line.indexOf(":");
+		if(colonPos == -1) 
+			return;
+		
+		String headerName = line.substring(0,  colonPos).toUpperCase();
+		String headerValue = line.substring(colonPos + 1).trim();
+		requestHeader.put(headerName, headerValue);
+		
 	}
 	
 	@Override
@@ -73,32 +77,59 @@ public class MyCatThread implements Runnable{
 		OutputStream output;
 		try {
 			InputStream input = socket.getInputStream();
-			
-			String line;
-			String path = null;
-			String ext = null;
+			StringBuilder sb = new StringBuilder();
 			String host = null;
-			while ((line = Util.readLine(input)) != null){
+			
+			String method = null;
+			String line;
+			String requestLine = null;
+			Map<String, String> requestHeader = new HashMap<String, String>();
+			while ((line = MyUtil.readLine(input)) != null){
 				if(line == "")
 					break;
-				if(line.startsWith("GET")){
-					path = MyURLDecoder.decode(line.split(" ")[1], "UTF-8");
-					String[] tmp = path.split("\\.");
-					ext = tmp[tmp.length -1];
-				}else if(line.startsWith("Host:")) {
-					host = line.substring("Host: ".length());
+				if(line.toUpperCase().startsWith("GET")){
+					method = "GET";
+					requestLine = line;
+				}else if(line.toUpperCase().startsWith("POST")){
+					method = "POST";
+					requestLine = line;
+				}else {
+					addRequestHeader(requestHeader, line);
+				}
+				sb.append(line + "\r\n");
+			}
+			if(requestLine == null)
+				return;
+			logger.info(sb.toString());
+			
+			String reqUri = MyURLDecoder.decode(requestLine.split(" ")[1], appProp.getURIEncoding());
+			String[] pathAndQuery = reqUri.split("\\?");
+			String path = pathAndQuery[0];
+			String query = null;
+			if (pathAndQuery.length > 1){
+				query = pathAndQuery[1];
+			}
+			output = new BufferedOutputStream(socket.getOutputStream());
+			
+			String appDir = path.substring(1).split("/")[0];
+			WebApplication webApp = WebApplication.serchWebApplication(appDir);
+			if(webApp != null ) {
+				ServletInfo servletInfo = webApp.serchServlet(path.substring(appDir.length() + 1));
+				if(servletInfo != null){
+					ServletService.doService(method, query, servletInfo, requestHeader, input, output);
+					output.close();
+					return;
 				}
 			}
 			
-			if(path == null){
-				return;
-			}
+			
+			String ext = null;
+			String[] tmp = reqUri.split("\\.");
+			ext = tmp[tmp.length -1];
 			if(path.endsWith("/")){
 				path += "index.html";
 				ext = "html";
 			}
-			
-			output = new BufferedOutputStream(socket.getOutputStream());
 			
 			FileSystem fs = FileSystems.getDefault();
 			File documentRootFile = new File(appProp.getDocumentRoot());

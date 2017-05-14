@@ -14,9 +14,12 @@ public class AppProperties {
 	private String clientsend;
 	private String documentRoot;
 	private String errorDocument;
+	private String webApps;
 	
 	private String host;
 	private int port;
+	
+	private String URIEncoding;
     
 
 	public String getName() {
@@ -66,5 +69,17 @@ public class AppProperties {
 	}
 	public void setErrorDocument(String errorDocument) {
 		this.errorDocument = errorDocument;
+	}
+	public String getURIEncoding() {
+		return URIEncoding;
+	}
+	public void setURIEncoding(String uRIEncoding) {
+		URIEncoding = uRIEncoding;
+	}
+	public String getWebApps() {
+		return webApps;
+	}
+	public void setWebApps(String webApps) {
+		this.webApps = webApps;
 	}
 }

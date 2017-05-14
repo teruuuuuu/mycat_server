@@ -24,6 +24,7 @@ repositories {
 
 dependencies {
 	compile('org.springframework.boot:spring-boot-starter')
+	compile group: 'javax.servlet', name: 'javax.servlet-api', version: '3.0.1'	
 	testCompile('org.springframework.boot:spring-boot-starter-test')
 }
 
@@ -39,15 +40,6 @@ sourceSets {
 		}
 	}
 }
-
-
-//設定ファイルの切り替え(本番用・テストサーバ用)
-def environment = project.hasProperty( 'env' ) ? env : 'dev'
-println "Target environment: $environment"
-if( environment.equals( 'prod' ))
-	sourceSets.main.resources.srcDirs 'src/main/resources/production'
-else
-	sourceSets.main.resources.srcDirs 'src/main/resources/development'
 
 //メインクラス指定
 bootRepackage {
