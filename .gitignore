@@ -24,9 +24,7 @@ nbbuild/
 dist/
 nbdist/
 .nb-gradle/
-
 ### java
-*.class
 
 /bin/
 src/main/resources/development/*
