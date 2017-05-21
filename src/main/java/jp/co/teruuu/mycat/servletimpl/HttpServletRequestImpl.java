@@ -7,6 +7,7 @@ import java.util.Map;
 
 import jp.co.teruuu.mycat.servlet.http.Cookie;
 import jp.co.teruuu.mycat.servletinterface.HttpServletRequest;
+import jp.co.teruuu.mycat.servletinterface.HttpSession;
 
 
 class HttpServletRequestImpl implements HttpServletRequest {
@@ -14,14 +15,68 @@ class HttpServletRequestImpl implements HttpServletRequest {
 	private String characterEncoding;
 	private Map<String, String[]> parameterMap;
 	private Cookie[] cookies;
+	private HttpSessionImpl session;
+	private HttpServletResponseImpl response;
+	private WebApplication webApp;
+	private final String SESSION_COOKIE_ID = "JSESSIONID";
+	
+	@Override
+	public HttpSession getSession() {
+		return getSession(true);
+	}
+	
+	public HttpSession getSession(boolean create) {
+		if(! create ){
+			return this.session;
+		}
+		if(this.session == null){
+			SessionManager manager = this.webApp.getSessionManager();
+			this.session = manager.createSession();
+			addSessionCookie();
+		}
+		return this.session;
+	}
+	
+	private HttpSessionImpl getSessionInternal() {
+		if(this.cookies == null){
+			return null;
+		}
+		Cookie cookie = null;
+		for(Cookie tempCookie : this.cookies) {
+			if(tempCookie.getName().equals(SESSION_COOKIE_ID)){
+				cookie = tempCookie;
+			}
+		}
+		SessionManager manager = this.webApp.getSessionManager();
+		HttpSessionImpl ret = null;
+		if(cookie != null){
+			ret = manager.getSession(cookie.getValue());
+		}
+		return ret;	
+	}
+	
+	private void addSessionCookie() {
+		Cookie cookie = new Cookie(SESSION_COOKIE_ID, this.session.getId());
+		cookie.setPath("/" + webApp.directory + "/");
+		cookie.setHttpOnly(true);
+		this.response.addCookie(cookie);
+	}
 
-
-	public HttpServletRequestImpl(String method, Map<String, String> requestHeader,
-			Map<String, String[]> parameterMap) {
+	public HttpServletRequestImpl(String method, 
+			Map<String, String> requestHeader, 
+			Map<String, String[]> parameterMap,
+			HttpServletResponseImpl resp, 
+			WebApplication webApp) {
 		this.characterEncoding = "UTF-8";
 		this.method = method;
 		this.parameterMap = parameterMap;
 		this.cookies = parseCookies(requestHeader.get("COOKIE"));
+		this.response = resp;
+		this.webApp = webApp;
+		this.session = getSessionInternal();
+		if(this.session != null){
+			addSessionCookie();
+		}
 	}
 
 	@Override

@@ -18,6 +18,8 @@ public class WebApplication {
 	String directory;
 	ClassLoader classLoader;
 	private Map<String, ServletInfo> servletCollection = new HashMap<String, ServletInfo>();
+	private SessionManager sessionManager;
+	
 
 	private WebApplication(String webAPPS_DIR, String dir) throws MalformedURLException {
 		this.directory = dir;
@@ -46,5 +48,12 @@ public class WebApplication {
 
 	public static WebApplication serchWebApplication(String dir) {
 		return webAppCollection.get(dir);
+	}
+	
+	SessionManager getSessionManager() {
+		if (this.sessionManager == null){
+			this.sessionManager = new SessionManager();
+		}
+		return this.sessionManager;
 	}
 }

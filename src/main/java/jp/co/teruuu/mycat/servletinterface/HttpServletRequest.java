@@ -10,5 +10,6 @@ public interface HttpServletRequest {
     String[] getParameterValues(String name);
     void setCharacterEncoding(String env) throws UnsupportedEncodingException;
     Cookie[] getCookie();
+    HttpSession getSession();
     
 }

@@ -70,13 +70,13 @@ public class ServletService {
 		if (method.equals("GET")) {
 			Map<String, String[]> map;
 			map = stringToMap(query);
-			req = new HttpServletRequestImpl("GET", requestHeader, map);
+			req = new HttpServletRequestImpl("GET", requestHeader, map, resp, info.webApp);
 		}else if(method.equals("POST")){
 			int contentLength = Integer.parseInt(requestHeader.get("CONTENT-LENGTH"));
 			Map<String, String[]>map;
 			String line = readToSize(input, contentLength);
 			map = stringToMap(line);
-			req = new HttpServletRequestImpl("POST", requestHeader, map);
+			req = new HttpServletRequestImpl("POST", requestHeader, map, resp, info.webApp);
 		}else{
 			throw new AssertionError("BAD METHOD:" + method);
 		}
