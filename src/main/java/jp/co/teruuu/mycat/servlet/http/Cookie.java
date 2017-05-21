@@ -1,4 +1,4 @@
-package servletinterface;
+package jp.co.teruuu.mycat.servlet.http;
 
 public class Cookie {
     private String name;

@@ -1,6 +1,6 @@
 package jp.co.teruuu.mycat.servletimpl;
 
-import servletinterface.HttpServlet;
+import jp.co.teruuu.mycat.servletinterface.HttpServlet;
 
 public class ServletInfo {
 	WebApplication webApp;

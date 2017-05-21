@@ -9,12 +9,13 @@ import jp.co.teruuu.mycat.config.AppProperties;
 
 public class SendResponse {
 	
-	public static void sendOkResponseHeader(OutputStream output, String contentType, AppProperties appProp) throws Exception {
+	public static void sendOkResponseHeader(OutputStream output, String contentType, AppProperties appProp, ResponseHeaderGenerator hg) throws Exception {
 		MyUtil.writeLine(output, "HTTP/1.1 200 OK");
 		MyUtil.writeLine(output, "Date: " + MyUtil.getDateStringUgc());
 		MyUtil.writeLine(output, "Server: MyCat/0.2");
 		MyUtil.writeLine(output, "Connection: close");
 		MyUtil.writeLine(output, "Content-type: " + contentType);
+		hg.generate(output);
 		MyUtil.writeLine(output, "");
 	}
 	

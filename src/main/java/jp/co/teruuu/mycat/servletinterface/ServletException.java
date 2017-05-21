@@ -1,4 +1,4 @@
-package servletinterface;
+package jp.co.teruuu.mycat.servletinterface;
 
 public class ServletException extends Exception {
 	public ServletException(String message) {

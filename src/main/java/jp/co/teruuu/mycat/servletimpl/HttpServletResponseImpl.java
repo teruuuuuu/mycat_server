@@ -4,10 +4,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.util.Collection;
-import java.util.Locale;
+import java.util.ArrayList;
 
-import servletinterface.HttpServletResponse;
+import jp.co.teruuu.mycat.servlet.http.Cookie;
+import jp.co.teruuu.mycat.servletinterface.HttpServletResponse;
 
 
 class HttpServletResponseImpl implements HttpServletResponse {
@@ -17,6 +17,7 @@ class HttpServletResponseImpl implements HttpServletResponse {
 	PrintWriter printWriter;
 	int status;
 	String redirectLocation;
+	ArrayList<Cookie> cookies = new ArrayList<Cookie>();
 	
 	public HttpServletResponseImpl(OutputStream output) {
 		this.outputStream = output;
@@ -57,4 +58,8 @@ class HttpServletResponseImpl implements HttpServletResponse {
 		this.status = sc;
 	}
 	
+	@Override
+	public void addCookie(Cookie cookie){
+		this.cookies.add(cookie);
+	}
 }

@@ -1,4 +1,4 @@
-package servletinterface;
+package jp.co.teruuu.mycat.servletinterface;
 
 public abstract class HttpServlet {
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)

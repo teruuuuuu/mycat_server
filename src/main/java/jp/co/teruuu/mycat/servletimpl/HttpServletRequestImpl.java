@@ -5,9 +5,8 @@ import java.net.URLDecoder;
 import java.nio.charset.Charset;
 import java.util.Map;
 
-import javax.servlet.http.Cookie;
-
-import servletinterface.HttpServletRequest;
+import jp.co.teruuu.mycat.servlet.http.Cookie;
+import jp.co.teruuu.mycat.servletinterface.HttpServletRequest;
 
 
 class HttpServletRequestImpl implements HttpServletRequest {
@@ -17,10 +16,12 @@ class HttpServletRequestImpl implements HttpServletRequest {
 	private Cookie[] cookies;
 
 
-	public HttpServletRequestImpl(String method, Map<String, String[]> parameterMap) {
+	public HttpServletRequestImpl(String method, Map<String, String> requestHeader,
+			Map<String, String[]> parameterMap) {
 		this.characterEncoding = "UTF-8";
 		this.method = method;
 		this.parameterMap = parameterMap;
+		this.cookies = parseCookies(requestHeader.get("COOKIE"));
 	}
 
 	@Override
@@ -77,5 +78,10 @@ class HttpServletRequestImpl implements HttpServletRequest {
 		}
 
 		return ret;
+	}
+
+	@Override
+	public Cookie[] getCookie() {
+		return this.cookies;
 	}
 }

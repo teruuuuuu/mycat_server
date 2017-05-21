@@ -1,5 +1,6 @@
 package jp.co.teruuu.mycat.util;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.DateFormat;
@@ -29,7 +30,7 @@ public class MyUtil {
 		}
 	}
 	
-	public static void writeLine(OutputStream output, String str) throws Exception {
+	public static void writeLine(OutputStream output, String str) throws IOException {
 		for (char ch : str.toCharArray()) {
 			output.write((int) ch);
 		}

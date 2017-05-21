@@ -1,7 +1,9 @@
-package servletinterface;
+package jp.co.teruuu.mycat.servletinterface;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+
+import jp.co.teruuu.mycat.servlet.http.Cookie;
 
 public interface HttpServletResponse {
 	static final int SC_OK = 200;
@@ -12,5 +14,5 @@ public interface HttpServletResponse {
     PrintWriter getWriter() throws IOException;
     void sendRedirect(String location);
     void setStatus(int sc);
-    
+    void addCookie(Cookie cookie);    
 }
