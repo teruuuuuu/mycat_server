@@ -43,12 +43,13 @@ public class SendResponse {
 		MyUtil.writeLine(output, "");
 	}
 	
-	public static void sendFoundResponse(OutputStream output, String location) throws Exception {
+	public static void sendFoundResponse(OutputStream output, String location, ResponseHeaderGenerator hg) throws Exception {
 		MyUtil.writeLine(output, "HTTP/1.1 302 Found");
 		MyUtil.writeLine(output, "Date: " + MyUtil.getDateStringUgc());
 		MyUtil.writeLine(output, "Server: MyCat/0.2");
 		MyUtil.writeLine(output, "Location: " + location);
 		MyUtil.writeLine(output, "Connection: close");
+		hg.generate(output);
 		MyUtil.writeLine(output, "");
 	}
 	

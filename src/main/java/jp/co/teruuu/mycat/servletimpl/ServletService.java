@@ -101,7 +101,8 @@ public class ServletService {
 			}else{
 				redirectLocation = resp.redirectLocation;
 			}
-			SendResponse.sendFoundResponse(output, redirectLocation);
+			ResponseHeaderGenerator hg = new ResponseHeaderGeneratorImpl(resp.cookies);
+			SendResponse.sendFoundResponse(output, redirectLocation, hg);
 		}
 		
 	}
